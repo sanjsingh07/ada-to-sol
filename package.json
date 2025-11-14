@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@evolution-sdk/lucid": "^2.0.1",
     "@meshsdk/core": "^1.9.0-beta.86",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -27,6 +28,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/client": "^6.19.0",
+    "@solana/web3.js": "^1.98.4",
     "class-validator": "^0.14.2",
     "lucid-cardano": "^0.10.11",
     "reflect-metadata": "^0.2.2",
