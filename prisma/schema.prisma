@@ -5,9 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  // provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  // provider = "prisma-client"
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
 }
 
 datasource db {
@@ -23,6 +23,7 @@ model UserWallet {
   solanaAddress      String  @unique
   newCardanoEnPriKey String  @unique
   solanaEnPriKey     String  @unique
+  nonce              String  @unique
   status             AccountStatus
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,17 +10,23 @@ export class UsersController {
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+    // check if cardano pub-key is correct
+
+    // we will call nonce function here
+
+    // return this.usersService.create(createUserDto);
+    return 'placeholderreturn';
   }
 
   @Get()
-  findAll() {
+  findAll(@Query('status') status? : 'VERIFIED' | 'NOT_VERIFIED') {
+    // return this.usersService.findAll(status);
     return this.usersService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @Get(':userAddress')
+  findOne(@Param('userAddress') userAddress: string) {
+    return this.usersService.findOne(userAddress);
   }
 
   @Patch(':id')
