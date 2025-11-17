@@ -13,7 +13,7 @@ CREATE TABLE "UserWallet" (
     "solanaPriKey" TEXT NOT NULL,
     "solanaPriKeyIv" TEXT NOT NULL,
     "solanaPriKeyTag" TEXT NOT NULL,
-    "nonce" TEXT,
+    "nonce" TEXT NOT NULL,
     "status" "AccountStatus" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,

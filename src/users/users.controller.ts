@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { UserDto, UserSginatureDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma } from '@prisma/client';
 
@@ -9,13 +9,19 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  create(@Body() createUserDto: UserDto) {
     // check if cardano pub-key is correct
 
     // we will call nonce function here
     // add authentication
 
     return this.usersService.createOrGetNonce(createUserDto);
+  }
+
+  @Post()
+  verifySignature(@Body() userSginatureDto: UserSginatureDto){
+
+    return this.usersService.backendVerifySignature(userSginatureDto);
   }
 
   @Get()
