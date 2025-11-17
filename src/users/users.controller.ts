@@ -13,9 +13,9 @@ export class UsersController {
     // check if cardano pub-key is correct
 
     // we will call nonce function here
+    // add authentication
 
-    // return this.usersService.create(createUserDto);
-    return 'placeholderreturn';
+    return this.usersService.createOrGetNonce(createUserDto);
   }
 
   @Get()
@@ -29,13 +29,13 @@ export class UsersController {
     return this.usersService.findOne(userAddress);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Patch(':userAddress')
+  update(@Param('userAddress') userAddress: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(userAddress, updateUserDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  @Delete(':userAddress')
+  remove(@Param('userAddress') userAddress: string) {
+    return this.usersService.remove(userAddress);
   }
 }

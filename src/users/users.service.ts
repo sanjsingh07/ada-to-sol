@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
-// import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DatabaseService } from "src/database/database.service";
 import { Prisma, $Enums } from '@prisma/client';
 import { generateNonce } from '@meshsdk/core';
 import { generatePrivateKey, toPublicKey } from "@evolution-sdk/lucid";
 import { Keypair } from '@solana/web3.js';
+import bs58 from "bs58";
+import { encrypt } from "src/utils/crypto.util";
 
 
 @Injectable()
@@ -21,43 +23,53 @@ export class UsersService {
     return await this.databaseService.userWallet.create({
       data: createUserDto
     });
+
   }
 
-    async createOrGetNonce(userAddress: string) {
+  async createOrGetNonce(createUserDto: CreateUserDto) {
     // if new user, create new user model in the database
-    let userObj = await this.findOne(userAddress);
+    let userObj = await this.findOne(createUserDto.walletAddress);
 
     const nonce = generateNonce('I agree to the term and conditions of the Mesh: ');
 
     if (!userObj) {
-        // create cadano and solana keypair, encrpt it and save it in model
+      // create cadano and solana keypair, encrpt it and save it in model
 
-        // cardano
-        const cardanoPriKey = generatePrivateKey(); // Bech32 encoded private key
-        const cardanoPubKey = toPublicKey(cardanoPriKey); // pubkey
+      // cardano
+      const cardanoPriKey = generatePrivateKey(); // Bech32 encoded private key
+      const cardanoPubKey = toPublicKey(cardanoPriKey); // pubkey
+      const encryptedCardano = encrypt(cardanoPriKey);
 
-        // solana
-        const keypair = Keypair.generate();
-        const solanaPriKey = keypair.secretKey.toString();
-        const solanaPubKey = keypair.publicKey.toBase58();
+      // solana
+      const keypair = Keypair.generate();
+      const encryptedSolana = encrypt(bs58.encode(keypair.secretKey));   // 64-byte secret key encoded as base58
+      const solanaPubKey = keypair.publicKey.toBase58();
 
-        // we should encrypt them here, but for the moment lets skip it
-        // we need to define how we want to encrypt it
+      // we encrypt private ketys using AES-256-GCM
 
-        const newUserObj = {
-          walletAddress: userAddress,
-          newCardanoAddress: cardanoPubKey,
-          newCardanoEnPriKey: cardanoPriKey, // NOT ENCRIPTED YET!!!
-          solanaAddress: solanaPubKey,
-          solanaEnPriKey: solanaPriKey, // NOT ENCRIPTED YET!!!
-          status: $Enums.AccountStatus.NOT_VERIFIED,
-          nonce: nonce,
-        }
+      const newUserObj = {
+        walletAddress: createUserDto.walletAddress,
+        newCardanoAddress: cardanoPubKey,
+        cardanoPriKey: encryptedCardano.data,
+        cardanoPriKeyIv: encryptedCardano.iv,
+        cardanoPriKeyTag: encryptedCardano.tag,
 
-        return await this.create(newUserObj);
+        solanaAddress: solanaPubKey,
+        solanaPriKey: encryptedSolana.data,
+        solanaPriKeyIv: encryptedSolana.iv,
+        solanaPriKeyTag: encryptedSolana.tag,
+        status: $Enums.AccountStatus.NOT_VERIFIED,
+        nonce: nonce,
+      }
+
+      await this.create(newUserObj);
+
+      return nonce;
     }
 
     // do: store 'nonce' in user model in the database // will we take care of this in create method
+    userObj.nonce = nonce;
+    await this.update(createUserDto.walletAddress, userObj);
 
     return nonce;
   }
@@ -88,7 +100,7 @@ export class UsersService {
     });
   }
 
-  async remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(userAddress: string) {
+    return `This action removes a #${userAddress} user`;
   }
 }

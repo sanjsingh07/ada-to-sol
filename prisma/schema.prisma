@@ -21,9 +21,18 @@ model UserWallet {
   walletAddress      String  @unique
   newCardanoAddress  String  @unique
   solanaAddress      String  @unique
-  newCardanoEnPriKey String  @unique
-  solanaEnPriKey     String  @unique
-  nonce              String  @unique
+
+  // Cardano encrypted private key
+  cardanoPriKey         String
+  cardanoPriKeyIv       String
+  cardanoPriKeyTag      String
+
+  // Solana encrypted private key
+  solanaPriKey          String
+  solanaPriKeyIv        String
+  solanaPriKeyTag       String
+
+  nonce              String?
   status             AccountStatus
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt

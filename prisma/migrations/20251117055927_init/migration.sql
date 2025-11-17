@@ -7,8 +7,13 @@ CREATE TABLE "UserWallet" (
     "walletAddress" TEXT NOT NULL,
     "newCardanoAddress" TEXT NOT NULL,
     "solanaAddress" TEXT NOT NULL,
-    "newCardanoEnPriKey" TEXT NOT NULL,
-    "solanaEnPriKey" TEXT NOT NULL,
+    "cardanoPriKey" TEXT NOT NULL,
+    "cardanoPriKeyIv" TEXT NOT NULL,
+    "cardanoPriKeyTag" TEXT NOT NULL,
+    "solanaPriKey" TEXT NOT NULL,
+    "solanaPriKeyIv" TEXT NOT NULL,
+    "solanaPriKeyTag" TEXT NOT NULL,
+    "nonce" TEXT,
     "status" "AccountStatus" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -24,9 +29,3 @@ CREATE UNIQUE INDEX "UserWallet_newCardanoAddress_key" ON "UserWallet"("newCarda
 
 -- CreateIndex
 CREATE UNIQUE INDEX "UserWallet_solanaAddress_key" ON "UserWallet"("solanaAddress");
-
--- CreateIndex
-CREATE UNIQUE INDEX "UserWallet_newCardanoEnPriKey_key" ON "UserWallet"("newCardanoEnPriKey");
-
--- CreateIndex
-CREATE UNIQUE INDEX "UserWallet_solanaEnPriKey_key" ON "UserWallet"("solanaEnPriKey");
