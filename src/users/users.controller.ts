@@ -3,22 +3,21 @@ import { UsersService } from './users.service';
 import { UserDto, UserSginatureDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma } from '@prisma/client';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
+  @Post('create')
+  @Public()
   create(@Body() createUserDto: UserDto) {
-    // check if cardano pub-key is correct
-
-    // we will call nonce function here
-    // add authentication
-
+    // maybe add check for correct cardano pubkey in dto?
     return this.usersService.createOrGetNonce(createUserDto);
   }
 
-  @Post()
+  @Post('verify-signature')
+  @Public()
   verifySignature(@Body() userSginatureDto: UserSginatureDto){
 
     return this.usersService.backendVerifySignature(userSginatureDto);
