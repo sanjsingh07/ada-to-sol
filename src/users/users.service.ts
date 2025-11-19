@@ -13,8 +13,6 @@ export class UsersService {
 
   constructor(private readonly databaseService: DatabaseService) {}
 
-
-
   async create(createUserDto: Prisma.UserWalletCreateInput) {
 
     //creates a new entry in db with createUserDto

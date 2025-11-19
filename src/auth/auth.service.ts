@@ -17,8 +17,6 @@ export class AuthService {
         let userObj = await this.usersService.findOne(userDto.walletAddress);
         if (!userObj) throw new UnauthorizedException('User not found');
 
-        console.log("printing nonce: ",userObj?.nonce!);
-
         // uncomment this when JWT testing is done 
         const result = await checkSignature(userObj?.nonce!, userDto.signature, userDto.walletAddress);
 
