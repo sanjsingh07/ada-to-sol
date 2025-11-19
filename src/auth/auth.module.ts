@@ -1,4 +1,3 @@
-
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
@@ -11,9 +10,7 @@ import { APP_GUARD } from '@nestjs/core';
   imports: [
     UsersModule,
     JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRET!,
-      signOptions: { expiresIn: '300s' },
+      global: true
     }),
   ],
     providers: [

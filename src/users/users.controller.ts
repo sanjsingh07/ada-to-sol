@@ -1,8 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UserDto, UserSginatureDto } from './dto/create-user.dto';
+import { UserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Prisma } from '@prisma/client';
 import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('users')
@@ -14,13 +13,6 @@ export class UsersController {
   create(@Body() createUserDto: UserDto) {
     // maybe add check for correct cardano pubkey in dto?
     return this.usersService.createOrGetNonce(createUserDto);
-  }
-
-  @Post('verify-signature')
-  @Public()
-  verifySignature(@Body() userSginatureDto: UserSginatureDto){
-
-    return this.usersService.backendVerifySignature(userSginatureDto);
   }
 
   @Get()

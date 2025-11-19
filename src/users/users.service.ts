@@ -1,20 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { UserDto, UserSginatureDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { UserDto } from './dto/create-user.dto';
 import { DatabaseService } from "src/database/database.service";
 import { Prisma, $Enums } from '@prisma/client';
-import { generateNonce, checkSignature } from '@meshsdk/core';
+import { generateNonce } from '@meshsdk/core';
 import { generatePrivateKey, toPublicKey } from "@evolution-sdk/lucid";
 import { Keypair } from '@solana/web3.js';
 import bs58 from "bs58";
 import { encrypt } from "src/utils/crypto.util";
-import { JwtService } from '@nestjs/jwt';
-
 
 @Injectable()
 export class UsersService {
 
-  constructor(private readonly databaseService: DatabaseService, private jwtService: JwtService) {}
+  constructor(private readonly databaseService: DatabaseService) {}
 
 
 
@@ -75,32 +72,13 @@ export class UsersService {
     return nonce;
   }
 
-    async backendVerifySignature(userDto: UserSginatureDto ) {
-    // do: get 'nonce' from database
-    let userObj = await this.findOne(userDto.walletAddress);
-
-    if(!userObj){
-      return "return user not found and 400 bad request error?";
-    }
-
-    // const result = await checkSignature(userObj?.nonce!, userDto.signature, userDto.walletAddress);
-
-    const result = true;
-
-    if(result){
-      // create JWT or approve certain process
-      const payload = { sub: userDto.walletAddress };
-      return {
-        access_token: await this.jwtService.signAsync(payload),
-      };
-
-    }
-    else{
-      // prompt user that signature is not correct
-      return "write custom error saying signature is incorrect";
-    }
-
+  async incrementTokenVersion(walletAddress: string) {
+    return this.databaseService.userWallet.update({
+      where: { walletAddress },
+      data: { refreshTokenVersion: { increment: 1 } },
+    });
   }
+
 
   async findAll(status?: 'NOT_VERIFIED' | 'VERIFIED') {
     if (status) return this.databaseService.userWallet.findMany({
