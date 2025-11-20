@@ -1,6 +1,7 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, Post, Body, Req } from '@nestjs/common';
 import { ChangeNowService } from './change-now.service';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { ChangeNowExchangeDto } from './dto/exchange-request.dto';
 
 @Controller('changenow')
 export class ChangeNowController {
@@ -24,5 +25,14 @@ export class ChangeNowController {
     });
   }
 
-  
+  // Maybe we dont need to as it is, 
+  // since we will be the once invoking the Tx
+  @Post('exchange')
+  createExchange(@Body() dto: ChangeNowExchangeDto, @Req() req: any) {
+    
+    const walletAddress = req.user.sub;
+
+    return this.changeNowService.createExchange(dto);
+  }
+
 }

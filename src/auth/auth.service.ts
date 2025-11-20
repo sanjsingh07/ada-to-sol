@@ -18,14 +18,14 @@ export class AuthService {
         if (!userObj) throw new UnauthorizedException('User not found');
 
         // uncomment this when JWT testing is done 
-        const result = await checkSignature(userObj?.nonce!, userDto.signature, userDto.walletAddress);
+        // const result = await checkSignature(userObj?.nonce!, userDto.signature, userDto.walletAddress);
 
         /**
          * 
          * only setting result for TESTING purpose
          * 
          */
-        // const result = true;
+        const result = true;
 
         if(result){
 

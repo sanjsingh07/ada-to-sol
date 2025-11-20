@@ -11,35 +11,83 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model UserWallet {
-  id                 String  @id @default(uuid()) @db.Uuid
-  walletAddress      String  @unique
-  newCardanoAddress  String  @unique
-  solanaAddress      String  @unique
+  id                String @id @default(uuid()) @db.Uuid
+  walletAddress     String @unique
+  newCardanoAddress String @unique
+  solanaAddress     String @unique
 
   // Cardano encrypted private key
-  cardanoPriKey         String
-  cardanoPriKeyIv       String
-  cardanoPriKeyTag      String
+  cardanoPriKey    String
+  cardanoPriKeyIv  String
+  cardanoPriKeyTag String
 
   // Solana encrypted private key
-  solanaPriKey          String
-  solanaPriKeyIv        String
-  solanaPriKeyTag       String
+  solanaPriKey    String
+  solanaPriKeyIv  String
+  solanaPriKeyTag String
 
-  refreshTokenVersion Int      @default(0)
-  nonce              String
-  status             AccountStatus
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  refreshTokenVersion Int           @default(0)
+  nonce               String
+  status              AccountStatus
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  transactions        Transaction[]
 }
 
 enum AccountStatus {
   NOT_VERIFIED
   VERIFIED
+}
+
+model Transaction {
+  id          String     @id @default(uuid()) @db.Uuid
+  // Link to your UserWallet table  
+  user        UserWallet @relation(fields: [userAddress], references: [walletAddress])
+  userAddress String
+
+  // ChangeNow fields
+  fromAmount     Float
+  toAmount       Float
+  flow           String
+  type           String
+  payinAddress   String
+  payoutAddress  String
+  fromCurrency   String
+  toCurrency     String
+  exchangeId     String @unique // ChangeNow "id"
+  directedAmount Float
+  fromNetwork    String
+  toNetwork      String
+
+  // Status
+  status TransactionStatus @default(NEW)
+
+  // when we initiate Tx from our end
+  TxHash String?
+
+  // Refund fields (optional)
+  refundAddress String?
+  refundHash    String?
+  refundAmount  Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TransactionStatus {
+  NEW
+  WAITING
+  CONFIRMING
+  EXCHANGING
+  SENDING
+  FINISHED
+  FAILED
+  REFUNDED
+  VERIFYING
 }

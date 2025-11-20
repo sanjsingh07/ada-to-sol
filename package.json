@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@emurgo/cardano-serialization-lib-nodejs": "^15.0.0",
     "@evolution-sdk/lucid": "^2.0.1",
     "@meshsdk/core": "^1.9.0-beta.86",
     "@nestjs/axios": "^4.0.1",
@@ -31,6 +32,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/client": "^6.19.0",
     "@solana/web3.js": "^1.98.4",
+    "cache-manager": "^7.2.5",
     "class-validator": "^0.14.2",
     "lucid-cardano": "^0.10.11",
     "reflect-metadata": "^0.2.2",
