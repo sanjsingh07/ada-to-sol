@@ -20,9 +20,11 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@blockfrost/blockfrost-js": "^6.0.0",
     "@emurgo/cardano-serialization-lib-nodejs": "^15.0.0",
     "@evolution-sdk/lucid": "^2.0.1",
     "@meshsdk/core": "^1.9.0-beta.86",
+    "@meshsdk/transaction": "^1.9.0-beta.87",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -32,6 +34,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/client": "^6.19.0",
     "@solana/web3.js": "^1.98.4",
+    "axios": "^1.13.2",
     "cache-manager": "^7.2.5",
     "class-validator": "^0.14.2",
     "lucid-cardano": "^0.10.11",
@@ -46,7 +49,7 @@
     "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.10.7",
+    "@types/node": "^22.19.1",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",

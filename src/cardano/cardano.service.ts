@@ -1,58 +1,101 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import {
+  BlockfrostProvider,
+  MeshTxBuilder,
+  MeshWallet,
+  Asset,
+} from '@meshsdk/core';
+import { CardanoConfig } from '../config/cardano.config';
 
 @Injectable()
 export class CardanoService {
+  private readonly logger = new Logger(CardanoService.name);
+  private provider: BlockfrostProvider;
+  private meshTxBuilder: MeshTxBuilder;
 
-    // constructor(private readonly httpService: HttpService, private readonly databaseService: DatabaseService) {}
-    async sendCardanoPayment({
-        privateKey,
-        fromAddress,
-        toAddress,
-        amountLovelace,
-        }: any) {
-        const S = CardanoSerializationLib; // alias
+  constructor(private configService: ConfigService) {
+    // const config = this.configService.get<CardanoConfig>('cardano');
+    const config = this.configService.getOrThrow<CardanoConfig>('cardano');
+    
+    this.provider = new BlockfrostProvider(config.blockfrostUrl!);
 
-        const paymentKey = S.PrivateKey.from_normal_bytes(Buffer.from(privateKey, 'hex'));
+    this.meshTxBuilder = new MeshTxBuilder({
+      fetcher: this.provider,
+      submitter: this.provider,
+      verbose: true,
+    });
+  }
 
-        const utxos = await this.cardanoProvider.getUtxos(fromAddress);
+  /**
+   * Send ADA to a recipient address
+   * @param senderPrivkey - PrivKey of sender
+   * @param recipientAddress - Bech32 address of recipient
+   * @param amount - Amount in lovelace (1 ADA = 1,000,000 lovelace)
+   */
+  async sendTransaction(
+    senderPriKey: string,
+    recipientAddress: string,
+    amount: string,
+  ): Promise<{ txHash: string }> {
+    try {
+      // Initialize wallet from mnemonic
+      const wallet = new MeshWallet({
+        networkId: 0, // 0 for testnet, 1 for mainnet
+        fetcher: this.provider,
+        submitter: this.provider,
+        key: {
+          type: 'root',
+          bech32: senderPriKey,
+        },
+      });
 
-        const txBuilder = this.cardanoProvider.getTxBuilder();
+      // Get wallet UTXOs and change address
+      const utxos = await wallet.getUtxos();
+      const changeAddress = await wallet.getChangeAddress();
 
-        // Add UTXOs
-        utxos.forEach(utxo => {
-            txBuilder.add_input(
-            utxo.txHash,
-            utxo.outputIndex,
-            utxo.amount,
-            );
-        });
+      this.logger.log(`Wallet UTXOs: ${utxos.length}`);
+      this.logger.log(`Change address: ${changeAddress}`);
 
-        // Add output
-        txBuilder.add_output(
-            S.TransactionOutput.new(
-            S.Address.from_bech32(toAddress),
-            S.Value.new(S.BigNum.from_str(amountLovelace.toString()))
-            )
-        );
+      // Build transaction
+      const unsignedTx = await this.meshTxBuilder
+        .txOut(recipientAddress, [{ unit: 'lovelace', quantity: amount }])
+        .changeAddress(changeAddress)
+        .selectUtxosFrom(utxos)
+        .complete();
 
-        // Build tx
-        const txBody = txBuilder.build();
-        const witnessSet = S.TransactionWitnessSet.new();
-        const vkeyWitnesses = S.Vkeywitnesses.new();
+      // Sign transaction
+      const signedTx = await wallet.signTx(unsignedTx, true);
 
-        const signature = paymentKey.sign(txBody.hash());
-        const vkeyWitness = S.Vkeywitness.new(
-            S.Vkey.new(paymentKey.to_public()),
-            S.Ed25519Signature.from_hex(Buffer.from(signature).toString('hex'))
-        );
+      // Submit transaction
+      const txHash = await this.provider.submitTx(signedTx);
 
-        vkeyWitnesses.add(vkeyWitness);
-        witnessSet.set_vkeys(vkeyWitnesses);
-
-        const signedTx = S.Transaction.new(txBody, witnessSet);
-        const txHash = await this.cardanoProvider.submitTransaction(signedTx);
-
-        return txHash;
+      this.logger.log(`Transaction submitted successfully: ${txHash}`);
+      
+      return { txHash };
+    } catch (error) {
+      this.logger.error('Transaction failed:', error);
+      throw error;
     }
+  }
 
+  /**
+   * Check transaction status
+   */
+  async getTransactionStatus(txHash: string): Promise<any> {
+    try {
+      // ✅ Use fetchTxInfo instead of fetchTransactionInfo
+      const transaction = await this.provider.fetchTxInfo(txHash);
+      
+      return {
+        txHash,
+        blockHeight: transaction.blockHeight,
+        // confirmations: transaction.confirmations || 0,
+        status: transaction.blockHeight ? 'confirmed' : 'pending',
+      };
+    } catch (error) {
+      this.logger.error(`Failed to fetch transaction ${txHash}:`, error);
+      throw error;
+    }
+  }
 }

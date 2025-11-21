@@ -6,11 +6,27 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ChangeNowModule } from './change-now/change-now.module';
 import { CardanoModule } from './cardano/cardano.module';
-import { CardanoProviderService } from './cardano-provider/cardano-provider.service';
+import { CardanoConfig } from './config/cardano.config';
 
 @Module({
-  imports: [ConfigModule.forRoot(), AuthModule, UsersModule, ChangeNowModule, CardanoModule],
+  imports: [
+    // ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [() => ({
+        cardano: {
+          network: process.env.CARDANO_NETWORK || 'preprod',
+          blockfrostApiKey: process.env.BLOCKFROST_API_KEY!,
+          blockfrostUrl: process.env.BLOCKFROST_URL!,
+        } as CardanoConfig,
+      })],
+    }),
+    AuthModule, 
+    UsersModule, 
+    ChangeNowModule, 
+    CardanoModule
+  ],
   controllers: [AppController],
-  providers: [AppService, CardanoProviderService],
+  providers: [AppService],
 })
 export class AppModule {}

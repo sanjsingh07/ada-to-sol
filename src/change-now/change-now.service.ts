@@ -104,19 +104,18 @@ export class ChangeNowService {
   });
 
   // 5. Build + send Cardano transaction
-  const txHash = await this.cardanoService.sendCardanoPayment({
-    privateKey: cardanoPrivateKey,
-    fromAddress: userWallet.newCardanoAddress,
-    toAddress: changeNowResponse.payinAddress,
-    amountLovelace: Math.floor(changeNowResponse.fromAmount * 1_000_000), // ADA → Lovelace
-  });
+  const txHash = await this.cardanoService.sendTransaction(
+    cardanoPrivateKey, 
+    changeNowResponse.payinAddress,
+    Math.floor(changeNowResponse.fromAmount * 1_000_000).toString(), // ADA → Lovelace
+  );
 
   // 6. Update transaction status
   await this.databaseService.transaction.update({
     where: { id: transaction.id },
     data: {
       status: 'SENDING',
-      refundHash: txHash,
+      refundHash: txHash.txHash,
     },
   });
 
