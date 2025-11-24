@@ -1,98 +1,227 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+## 📌 **READ ME FIRST**
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+### ⚡ Project Overview
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This repository is a **NestJS backend** that services a blockchain-based application with:
 
-## Description
+* 🔐 **Authentication using wallet signature verification**
+* 👤 **User management**
+* 🔄 **ChangeNOW crypto exchange integration**
+* 💳 **Cardano service utilities**
+* 🛢 **Prisma ORM + PostgreSQL**
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### 🏗 Project Structure (Important Modules)
 
-## Project setup
+| Folder           | Purpose                                                        |
+| ---------------- | -------------------------------------------------------------- |
+| `src/auth`       | Signature-based auth & token refresh                           |
+| `src/users`      | User CRUD & profile updates                                    |
+| `src/change-now` | ChangeNOW exchange API integration                             |
+| `src/cardano`    | Cardano blockchain utilities (service only, no controller yet) |
+| `src/database`   | DB connection layer                                            |
+| `prisma/`        | Database schema                                                |
+
+### 📦 Installation & Setup
+
+#### **1. Install dependencies**
 
 ```bash
-$ npm install
+npm install
 ```
 
-## Compile and run the project
+#### **2. Configure Environment**
+
+Create `.env` based on `.env.example` (if provided). Required variables likely include:
+
+```
+DATABASE_URL=
+DIRECT_URL=
+ENCRYPTION_KEY= // For encrpyting and decrypting wallets
+JWT_SECRET=
+CHANGENOW_API_KEY=
+CHANGENOW_API_URL=
+BLOCKFROST_API_KEY=
+BLOCKFROST_URL=
+```
+
+#### **3. Run Migrations**
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npx prisma migrate deploy
 ```
 
-## Run tests
+#### **4. Start the Application**
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run start:dev
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 🌐 **API Integration Guide (Frontend)**
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 🔐 **Authentication (Wallet Signature)**
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+#### 📝 **POST `/auth/verify-signature`**
+
+**Public endpoint**
+
+**Request Body**
+
+```json
+{
+  "address": "walletPublicKey",
+  "signature": "signedMessage",
+  "message": "nonceOrMessage"
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+**Response**
+Returns:
 
-## Resources
+* Access token (short-lived)
+* Refresh token (persistent)
 
-Check out a few resources that may come in handy when working with NestJS:
+```json
+{
+  "access_token": "...",
+  "refresh_token": "...",
+  "user": { "...user data..." }
+}
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+#### ♻ **POST `/auth/refresh`**
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+**Public endpoint**
 
-## Stay in touch
+**Request Body**
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```json
+{ "refreshToken": "string" }
+```
 
-## License
+**Response**
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```json
+{
+  "access_token": "...",
+  "refresh_token": "..."
+}
+```
+
+---
+
+### 👤 **User Module**
+
+🔐 **All endpoints require `Authorization: Bearer <TOKEN>`**
+(Except `/users/create`)
+
+---
+
+#### 🆕 **POST `/users/create`**
+
+**Public endpoint**
+
+```json
+{
+  "address": "walletPublicKey",
+  "username": "optional",
+  "email": "optional"
+}
+```
+
+---
+
+#### 🔎 **GET `/users/:userAddress`**
+
+Fetch user by address.
+
+---
+
+#### ✏ **PATCH `/users/:userAddress`**
+
+Update user.
+
+```json
+{
+  "username": "newUserName",
+  "email": "newEmail"
+}
+```
+
+---
+
+#### 🗑 **DELETE `/users/:userAddress`**
+
+---
+
+### 🔄 **ChangeNOW Exchange Service**
+
+#### 🚫 Authentication Required
+
+Headers example:
+
+```
+Authorization: Bearer <access_token>
+```
+
+---
+
+#### 📉 **GET `/changenow/exchange/min-amount`**
+
+**Query params required**
+
+```
+fromCurrency=
+toCurrency=
+fromNetwork=
+toNetwork=
+```
+
+**Example**
+
+```
+GET /changenow/exchange/min-amount?fromCurrency=btc&toCurrency=ada&fromNetwork=btc&toNetwork=ada
+```
+
+---
+
+#### 💱 **POST `/changenow/exchange`**
+
+Creates an exchange and sends funds using the wallet linked to the token.
+
+**Body**
+
+```json
+{
+  "fromCurrency": "btc",
+  "toCurrency": "ada",
+  "fromNetwork": "btc",
+  "toNetwork": "ada",
+  "amount": 0.01,
+  "recipientAddress": "addr1..."
+}
+```
+
+⚠ Backend extracts the wallet address from `req.user.sub` (token).
+
+---
+
+### 💳 **Cardano Module**
+
+⚠ Currently **service only, no HTTP endpoints exposed yet.**
+
+---
+
+### 🔐 Required Headers Summary
+
+| Endpoint        | Auth Required                           | Headers                         |
+| --------------- | --------------------------------------- | ------------------------------- |
+| `/auth/*`       | ❌ No                                    | none                            |
+| `/users/create` | ❌ No                                    | none                            |
+| `/users/*`      | ✔ Yes                                   | `Authorization: Bearer <token>` |
+| `/changenow/*`  | ✔ Yes (except min-amount may be public) | `Authorization: Bearer <token>` |
+
+---
