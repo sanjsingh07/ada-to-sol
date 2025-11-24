@@ -27,7 +27,6 @@ export class UsersController {
   @Get()
   findAll(@Query('status') status? : 'VERIFIED' | 'NOT_VERIFIED') {
     return this.usersService.findAll(status);
-    // return this.usersService.findAll();
   }
 
   @Get(':userAddress')
