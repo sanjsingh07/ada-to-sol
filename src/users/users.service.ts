@@ -2,11 +2,17 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserDto } from './dto/create-user.dto';
 import { DatabaseService } from "src/database/database.service";
 import { Prisma, $Enums } from '@prisma/client';
-import { generateNonce } from '@meshsdk/core';
-import { generatePrivateKey, toPublicKey } from "@evolution-sdk/lucid";
+import { generateMnemonic, mnemonicToEntropy, generateNonce } from "@meshsdk/core";
+import {
+  Bip32PrivateKey,
+  BaseAddress,
+  NetworkInfo,
+  Credential
+} from "@emurgo/cardano-serialization-lib-nodejs";
 import { Keypair } from '@solana/web3.js';
 import bs58 from "bs58";
 import { encrypt } from "src/utils/crypto.util";
+import * as bip39 from "bip39";
 
 @Injectable()
 export class UsersService {
@@ -32,9 +38,50 @@ export class UsersService {
       // create cadano and solana keypair, encrpt it and save it in model
 
       // cardano
-      const cardanoPriKey = generatePrivateKey(); // Bech32 encoded private key
-      const cardanoPubKey = toPublicKey(cardanoPriKey); // pubkey
-      const encryptedCardano = encrypt(cardanoPriKey);
+      // 1. Generate a 15-word mnemonic
+      // Word Count	  Entropy
+      // 12        	  128 bits
+      // 15        	  160 bits
+      // 18           192 bits
+      // 21	          224 bits
+      // 24           256 bits
+      const mnemonic = generateMnemonic(160);
+
+      // 2. Get entropy
+      const entropy = bip39.mnemonicToEntropy(mnemonic);
+      // 3. Derive root private key (root_xsk)
+      const rootPrvKey = Bip32PrivateKey.from_bip39_entropy(
+        Buffer.from(entropy, "hex"),
+        Buffer.from("") // optional password
+      );
+
+      // 3. Derive Cardano payment keys (root → account → payment key)
+      const accountKey = rootPrvKey
+        .derive(1852 | 0x80000000)
+        .derive(1815 | 0x80000000)
+        .derive(0 | 0x80000000);
+
+      const paymentPrv = accountKey.derive(0).derive(0);
+      const paymentPub = paymentPrv.to_public();
+
+      // 5. Derive stake key (m/1852'/1815'/0'/2/0)
+      const stakePrv = accountKey.derive(2).derive(0);
+      const stakePub = stakePrv.to_public();
+
+      // convert public keys to key hash
+      const paymentCred = Credential.from_keyhash(paymentPub.to_raw_key().hash());
+      const stakeCred = Credential.from_keyhash(stakePub.to_raw_key().hash());
+
+      const baseAddr = BaseAddress.new(
+        NetworkInfo.mainnet().network_id(),   // or testnet().network_id()
+        paymentCred,
+        stakeCred // stake key = same for now
+      );
+
+      const cardanoAddress = baseAddr.to_address().to_bech32();
+
+      // 5. You only store:
+      const encryptedMnemonic = encrypt(mnemonic);
 
       // solana
       const keypair = Keypair.generate();
@@ -45,10 +92,10 @@ export class UsersService {
 
       const newUserObj = {
         walletAddress: createUserDto.walletAddress,
-        newCardanoAddress: cardanoPubKey,
-        cardanoPriKey: encryptedCardano.data,
-        cardanoPriKeyIv: encryptedCardano.iv,
-        cardanoPriKeyTag: encryptedCardano.tag,
+        newCardanoAddress: cardanoAddress,
+        cardanoPriKey: encryptedMnemonic.data, // its nmemonic not private key!!!
+        cardanoPriKeyIv: encryptedMnemonic.iv,
+        cardanoPriKeyTag: encryptedMnemonic.tag,
 
         solanaAddress: solanaPubKey,
         solanaPriKey: encryptedSolana.data,

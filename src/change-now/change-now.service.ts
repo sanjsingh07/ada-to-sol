@@ -75,6 +75,42 @@ export class ChangeNowService {
   }
 
 
+  // Test function
+  // REMOVE THIS PART OF CODE WHEN DONE TESTING ON MAINNET
+  // async sendTransaction(reqUserAddress: string) {
+    
+  //   const userWallet = await this.databaseService.userWallet.findUnique({
+  //     where: { walletAddress: reqUserAddress },
+  //   });
+
+  //   console.log("printing userWallet: ",userWallet);
+
+  // if (!userWallet) throw new Error('Wallet not found');
+
+  //   // 4. Decrypt Cardano private key
+  //   const cardanoPrivateKey = decrypt({
+  //     iv: userWallet.cardanoPriKeyIv,
+  //     data: userWallet.cardanoPriKey,
+  //     tag: userWallet.cardanoPriKeyTag,
+  //   });
+
+  //   console.log("printing cardanoPrivateKey: ",cardanoPrivateKey);
+
+  //   // 5. Build + send Cardano transaction
+  //   const txHash = await this.cardanoService.sendTransaction(
+  //     cardanoPrivateKey, 
+  //     "addr_test1qqelrke3nl7czzsvw0jhw46ak7kvve7dvt0rcnq4a20gj52x5yex2q0dtufmht9xtvdmvzf4jw5xp3zg5avg5lxg9t8sn2d00s",
+  //     Math.floor(1 * 1_000_000).toString(), // ADA → Lovelace
+  //   );
+
+  //   return {
+  //     status: 'success',
+  //     // exchangeId: transaction.exchangeId,
+  //     blockchainTx: txHash,
+  //   };
+
+  // }
+
 
   async createExchangeAndSend(reqUserAddress: string, dto: ChangeNowExchangeDto) {
   // 1. Call ChangeNow
@@ -83,7 +119,17 @@ export class ChangeNowService {
   // 2. Save Transaction
   const transaction = await this.databaseService.transaction.create({
     data: {
-      ...changeNowResponse,
+      fromAmount: changeNowResponse.fromAmount,
+      toAmount: changeNowResponse.toAmount,
+      flow: changeNowResponse.flow,
+      type: changeNowResponse.type,
+      payinAddress: changeNowResponse.payinAddress,
+      payoutAddress: changeNowResponse.payoutAddress,
+      fromCurrency: changeNowResponse.fromCurrency,
+      toCurrency: changeNowResponse.toCurrency,
+      directedAmount: changeNowResponse.directedAmount,
+      fromNetwork: changeNowResponse.fromNetwork,
+      toNetwork: changeNowResponse.toNetwork,
       exchangeId: changeNowResponse.id,
       userAddress: reqUserAddress,
     },
@@ -97,15 +143,17 @@ export class ChangeNowService {
   if (!userWallet) throw new Error('Wallet not found');
 
   // 4. Decrypt Cardano private key
-  const cardanoPrivateKey = decrypt({
+  const cardanoWalletMnemonic = decrypt({
     iv: userWallet.cardanoPriKeyIv,
     data: userWallet.cardanoPriKey,
     tag: userWallet.cardanoPriKeyTag,
   });
 
+  const words = cardanoWalletMnemonic.trim().split(/\s+/);
+
   // 5. Build + send Cardano transaction
   const txHash = await this.cardanoService.sendTransaction(
-    cardanoPrivateKey, 
+    words, 
     changeNowResponse.payinAddress,
     Math.floor(changeNowResponse.fromAmount * 1_000_000).toString(), // ADA → Lovelace
   );

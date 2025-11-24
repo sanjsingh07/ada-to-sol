@@ -18,7 +18,7 @@ export class CardanoService {
     // const config = this.configService.get<CardanoConfig>('cardano');
     const config = this.configService.getOrThrow<CardanoConfig>('cardano');
     
-    this.provider = new BlockfrostProvider(config.blockfrostUrl!);
+    this.provider = new BlockfrostProvider(config.blockfrostApiKey);
 
     this.meshTxBuilder = new MeshTxBuilder({
       fetcher: this.provider,
@@ -34,7 +34,7 @@ export class CardanoService {
    * @param amount - Amount in lovelace (1 ADA = 1,000,000 lovelace)
    */
   async sendTransaction(
-    senderPriKey: string,
+    mnemonic: string[],
     recipientAddress: string,
     amount: string,
   ): Promise<{ txHash: string }> {
@@ -45,10 +45,21 @@ export class CardanoService {
         fetcher: this.provider,
         submitter: this.provider,
         key: {
-          type: 'root',
-          bech32: senderPriKey,
+          type: 'mnemonic',
+          words: mnemonic,
         },
       });
+
+      // TEST WALLET Configration
+      // const wallet = new MeshWallet({
+      //   networkId: 0, // 0 for testnet, 1 for mainnet
+      //   fetcher: this.provider,
+      //   submitter: this.provider,
+      //   key: {
+      //     type: 'mnemonic',
+      //     words: ['advice', 'cloth', 'thumb', 'label', 'half', 'music', 'decide', 'joke', 'hockey', 'during', 'basic', 'depend', 'ticket', 'usage', 'float'],
+      //   },
+      // });
 
       // Get wallet UTXOs and change address
       const utxos = await wallet.getUtxos();

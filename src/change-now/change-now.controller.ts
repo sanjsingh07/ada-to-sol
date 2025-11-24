@@ -32,7 +32,15 @@ export class ChangeNowController {
     
     const walletAddress = req.user.sub;
 
-    return this.changeNowService.createExchange(dto);
+    return this.changeNowService.createExchangeAndSend(walletAddress, dto);
   }
+
+  // TEST FUNCTION
+  // @Get('sendtx')
+  // sendTransaction(@Req() req: any) {
+  //   const walletAddress = req.user.sub;
+  //   return this.changeNowService.sendTransaction(walletAddress);
+  // }
+  
 
 }
