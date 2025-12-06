@@ -22,9 +22,12 @@ export class AuthService {
 
         if(result){
 
-        const jwtToken = await this.generateTokens(userObj)
+          // Increment refresh token version in DB so the old token becomes invalid
+          const updatedUser = await this.usersService.incrementTokenVersion(userObj.walletAddress);
+          const jwtToken = await this.generateTokens(updatedUser);
 
-        return jwtToken;
+          return jwtToken;
+
         }
         else{
         throw new UnauthorizedException('Invalid or incorret signature');
@@ -34,19 +37,23 @@ export class AuthService {
 
   // Issue new token pair
   async generateTokens(user: Prisma.UserWalletCreateInput) {
-    const payload = {
+    const accessTokenPayload = {
       sub: user.walletAddress,
-      version: user.refreshTokenVersion,
     };
 
-    const accessToken = await this.jwt.signAsync(payload, {
+    const accessToken = await this.jwt.signAsync(accessTokenPayload, {
       secret: process.env.JWT_SECRET,
       expiresIn: '5m',
     });
 
-    const refreshToken = await this.jwt.signAsync(payload, {
+    const refreshTokenPayload = {
+      sub: user.walletAddress,
+      version: user.refreshTokenVersion,
+    };
+
+    const refreshToken = await this.jwt.signAsync(refreshTokenPayload, {
       secret: process.env.JWT_SECRET,
-      expiresIn: '30m',
+      expiresIn: '30d',
     });
 
     return { accessToken, refreshToken };
