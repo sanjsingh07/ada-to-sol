@@ -7,6 +7,7 @@ import {
 // CONFIGURE THESE TWO VALUES
 // -------------------------------------
 
+const baseAddressBech32 = "addr_test1qqelrke3nl7czzsvw0jhw46ak7kvve7dvt0rcnq4a20gj52x5yex2q0dtufmht9xtvdmvzf4jw5xp3zg5avg5lxg9t8sn2d00s";
 const MNEMONIC = "worry elbow bargain broom produce sort waste bacon safe foam trouble catch noodle hint apology";
 const NONCE = "4920616772656520746f20746865207465726d20616e6420636f6e646974696f6e73206f6620746865204d6573683a20306c47687763637a37527150706d367976336e504964536842783862565a7441";
 const BLOCKFROST_API_KEY = ''; // for signing tx its not necessary
