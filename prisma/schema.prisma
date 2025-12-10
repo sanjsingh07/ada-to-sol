@@ -33,6 +33,7 @@ model UserWallet {
   solanaPriKeyTag String
 
   refreshTokenVersion Int           @default(0)
+  orderlyAccountId    String?       @unique
   nonce               String
   status              AccountStatus
   createdAt           DateTime      @default(now())

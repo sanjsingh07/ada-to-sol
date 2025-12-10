@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { ChangeNowModule } from './change-now/change-now.module';
 import { CardanoModule } from './cardano/cardano.module';
 import { CardanoConfig } from './config/cardano.config';
+import { OrderlyModule } from './orderly/orderly.module';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { CardanoConfig } from './config/cardano.config';
     AuthModule, 
     UsersModule, 
     ChangeNowModule, 
-    CardanoModule
+    CardanoModule, OrderlyModule
   ],
   controllers: [AppController],
   providers: [AppService],
