@@ -32,13 +32,19 @@ model UserWallet {
   solanaPriKeyIv  String
   solanaPriKeyTag String
 
-  refreshTokenVersion Int           @default(0)
-  orderlyAccountId    String?       @unique
-  nonce               String
-  status              AccountStatus
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-  transactions        Transaction[]
+  refreshTokenVersion Int @default(0)
+
+  // Orderly encrypted private key
+  orderlyAccountId String?       @unique
+  orderlyKeyPublic String? // base58, WITHOUT "ed25519:" prefix
+  orderlyKeySecret String? // encrypted
+  orderlyKeyIv     String?
+  orderlyKeyTag    String?
+  nonce            String
+  status           AccountStatus
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  transactions     Transaction[]
 }
 
 enum AccountStatus {
@@ -52,6 +58,9 @@ model Transaction {
   user        UserWallet @relation(fields: [userAddress], references: [walletAddress])
   userAddress String
 
+  direction   TransactionDirection
+  orderlyTxId String? // withdraw_request_id / deposit ref
+
   // ChangeNow fields
   fromAmount     Float
   toAmount       Float
@@ -61,13 +70,13 @@ model Transaction {
   payoutAddress  String
   fromCurrency   String
   toCurrency     String
-  exchangeId     String @unique // ChangeNow "id"
+  exchangeId     String? @unique // ChangeNow "id"
   directedAmount Float
   fromNetwork    String
   toNetwork      String
 
   // Status
-  status TransactionStatus @default(NEW)
+  status TransactionStatus @default(CREATED)
 
   // when we initiate Tx from our end
   TxHash String?
@@ -81,14 +90,61 @@ model Transaction {
   updatedAt DateTime @updatedAt
 }
 
-enum TransactionStatus {
-  NEW
-  WAITING
-  CONFIRMING
-  EXCHANGING
-  SENDING
-  FINISHED
-  FAILED
-  REFUNDED
-  VERIFYING
+enum TransactionDirection {
+  DEPOSIT
+  WITHDRAW
 }
+
+enum TransactionStatus {
+  // ─────────────────────────────
+  // Creation
+  // ─────────────────────────────
+  CREATED // user initiated tx (deposit or withdraw)
+
+  // ─────────────────────────────
+  // Chain funds movement
+  // ─────────────────────────────
+  WAITING_CHAIN_DEPOSIT // waiting for ADA / SOL to arrive
+  CHAIN_CONFIRMED // funds confirmed on-chain
+
+  // ─────────────────────────────
+  // ChangeNow
+  // ─────────────────────────────
+  CHANGENOW_CREATED // exchange created
+  CHANGENOW_EXCHANGING // swap in progress
+  CHANGENOW_COMPLETED // swap finished
+
+  // ─────────────────────────────
+  // Orderly
+  // ─────────────────────────────
+  ORDERLY_DEPOSIT_PENDING
+  ORDERLY_DEPOSIT_CONFIRMED
+
+  ORDERLY_WITHDRAW_PENDING
+  ORDERLY_WITHDRAW_CONFIRMED
+
+  // ─────────────────────────────
+  // Final chain send (withdraw)
+  // ─────────────────────────────
+  SENDING_TO_USER // ADA being sent to user
+  COMPLETED // final success
+
+  // ─────────────────────────────
+  // Failure states
+  // ─────────────────────────────
+  FAILED
+  REFUND_PENDING
+  REFUNDED
+}
+
+// enum TransactionStatus {
+//   NEW
+//   WAITING
+//   CONFIRMING
+//   EXCHANGING
+//   SENDING
+//   FINISHED
+//   FAILED
+//   REFUNDED
+//   VERIFYING
+// }

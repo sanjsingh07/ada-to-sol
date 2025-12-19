@@ -13,6 +13,7 @@ import { Keypair } from '@solana/web3.js';
 import bs58 from "bs58";
 import { encrypt } from "src/utils/crypto.util";
 import * as bip39 from "bip39";
+import { generateOrderlyKeypair } from 'src/utils/orderly.util';
 
 @Injectable()
 export class UsersService {
@@ -88,6 +89,20 @@ export class UsersService {
       const encryptedSolana = encrypt(bs58.encode(keypair.secretKey));   // 64-byte secret key encoded as base58
       const solanaPubKey = keypair.publicKey.toBase58();
 
+      /* =======================
+         ORDERLY KEY GENERATION
+      ======================== */
+
+      const orderlyKeypair = await generateOrderlyKeypair();
+      /**
+       * orderlyKeypair = {
+       *   publicKey: string (base58, WITHOUT ed25519: prefix)
+       *   privateKey: Uint8Array | string
+       * }
+       */
+
+      const encryptedOrderlyPriKey = encrypt(orderlyKeypair.secretKeyBase58);
+
       // we encrypt private ketys using AES-256-GCM
 
       const newUserObj = {
@@ -101,6 +116,12 @@ export class UsersService {
         solanaPriKey: encryptedSolana.data,
         solanaPriKeyIv: encryptedSolana.iv,
         solanaPriKeyTag: encryptedSolana.tag,
+
+        orderlyKeyPublic: orderlyKeypair.publicKeyBase58,
+        orderlyKeySecret: encryptedOrderlyPriKey.data,
+        orderlyKeyIv: encryptedOrderlyPriKey.iv,
+        orderlyKeyTag: encryptedOrderlyPriKey.tag,
+
         status: $Enums.AccountStatus.NOT_VERIFIED,
         nonce: nonce,
       }
